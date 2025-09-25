@@ -7,7 +7,21 @@
     mode: "0644"
     state: "{{ (nginx_state == 'uninstall') | ternary('absent', 'present') }}"
   loop: "{{ nginx_repository | default(nginx_default_repository_debian) }}"
-  when: nginx_manage_repo | bool
+  when:
+    - nginx_manage_repo | bool
+    - ansible_facts['distribution_major_version'] is version('13', '<')
+
+- name: (Debian/Ubuntu) {{ (nginx_setup == 'uninstall') | ternary('Remove', 'Configure') }} NGINX repository
+  ansible.builtin.apt_repository:
+    filename: nginx
+    repo: "{{ item }}"
+    update_cache: true
+    mode: "0644"
+    state: "{{ (nginx_state == 'uninstall') | ternary('absent', 'present') }}"
+  loop: "{{ nginx_repository | default(nginx_default_repository_debian13) }}"
+  when:
+    - nginx_manage_repo | bool
+    - ansible_facts['distribution_major_version'] is version('13', '>=')
 
 - name: (Debian/Ubuntu) {{ (nginx_setup == 'uninstall') | ternary('Unpin', 'Pin') }} NGINX repository
   ansible.builtin.blockinfile:

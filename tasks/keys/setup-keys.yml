@@ -22,7 +22,18 @@
     id: 8540A6F18833A80E9C1653A42FD21310B49F6B46
     keyring: /usr/share/keyrings/nginx-archive-keyring.gpg
     url: "{{ keysite }}"
-  when: ansible_facts['os_family'] == 'Debian'
+  when:
+    - ansible_facts['os_family'] == 'Debian'
+    - ansible_facts['distribution_major_version'] is version('13', '<')
+
+- name: (Debian 13) Add NGINX signing key
+  ansible.builtin.get_url:
+    url: "{{ keysite }}"
+    dest: /usr/share/keyrings/nginx-archive-keyring.asc
+    mode: '0644'
+  when:
+    - ansible_facts['os_family'] == 'Debian'
+    - ansible_facts['distribution_major_version'] is version('13', '>=')
 
 - name: (Red Hat/SLES OSs) Add NGINX signing key
   ansible.builtin.rpm_key:
